@@ -16,7 +16,6 @@ int main() {
 	init();
 
 	Window* window = new Window(640, 480, "Test Window");
-	window->setWindowedFullscreen(window->getMonitors()[1]);
 
 	window->beginRender();
 
