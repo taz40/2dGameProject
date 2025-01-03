@@ -104,7 +104,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\deps\glad\include;$(SolutionDir)\deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\deps\spdlog\include;$(SolutionDir)\deps\glm;$(SolutionDir)\deps\glad\include;$(SolutionDir)\deps\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +142,9 @@
     </ProjectReference>
     <ProjectReference Include="..\deps\glfw.vcxproj">
       <Project>{1153a50d-40f1-4b5a-ba79-072cee778c0e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\deps\spdlog.vcxproj">
+      <Project>{7aeadf62-bdf1-445d-84f1-9793cf769429}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
