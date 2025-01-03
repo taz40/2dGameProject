@@ -4,8 +4,7 @@ Window::Window(int width, int height, const char* title) {
 	glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
 	if (!glfw_window)
 		throw ("Failed to create GLFW Window!");
-	setWidth(width);
-	setHeight(height);
+	setSize(width, height);
 	setTitle(title);
 
 }
@@ -15,8 +14,7 @@ Window::~Window() {
 }
 
 void Window::setWidth(int width) {
-	this->width = width;
-	glfwSetWindowSize(glfw_window, width, height);
+	setSize(width, height);
 }
 
 int Window::getWidth() {
@@ -24,12 +22,17 @@ int Window::getWidth() {
 }
 
 void Window::setHeight(int height) {
-	this->height = height;
-	glfwSetWindowSize(glfw_window, width, height);
+	setSize(width, height);
 }
 
 int Window::getHeight() {
 	return height;
+}
+
+void Window::setSize(int width, int height) {
+	this->height = height;
+	this->width = width;
+	glfwSetWindowSize(glfw_window, width, height);
 }
 
 void Window::setTitle(const char* title) {
@@ -41,12 +44,57 @@ const char* Window::getTitle() {
 	return title;
 }
 
-void Window::setFullscreen(bool fullscreen) {
-	is_fullscreen = fullscreen;
-	if (fullscreen)
-		glfwSetWindowMonitor(glfw_window, glfwGetPrimaryMonitor(), 0, 0, width, height, GLFW_DONT_CARE);
-	else
-		glfwSetWindowMonitor(glfw_window, NULL);
+void Window::setFullscreen(int width, int height, int refreshRate) {
+	setFullscreen(width, height, refreshRate, glfwGetPrimaryMonitor());
+}
+
+void Window::setFullscreen(int width, int height, int refreshRate, GLFWmonitor* monitor) {
+	is_fullscreen = true;
+	glfwGetWindowPos(glfw_window, &windowed_mode_x, &windowed_mode_y);
+	glfwSetWindowMonitor(glfw_window, monitor, 0, 0, width, height, refreshRate);
+}
+
+void Window::setWindowed() {
+	is_fullscreen = false;
+	glfwSetWindowMonitor(glfw_window, NULL, windowed_mode_x, windowed_mode_y, width, height, NULL);
+}
+
+void Window::setWindowedFullscreen() {
+	setWindowedFullscreen(glfwGetPrimaryMonitor());
+}
+
+void Window::setWindowedFullscreen(GLFWmonitor* monitor) {
+	if (is_fullscreen)
+		setWindowed();
+	glfwGetWindowPos(glfw_window, &windowed_mode_x, &windowed_mode_y);
+	is_fullscreen = true;
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	glfwSetWindowMonitor(glfw_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+
+}
+
+std::vector<GLFWvidmode> Window::getVideoModes() {
+	return getVideoModes(glfwGetPrimaryMonitor());
+}
+
+std::vector<GLFWvidmode> Window::getVideoModes(GLFWmonitor* monitor) {
+	int count;
+	const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
+	std::vector<GLFWvidmode> modesArray;
+	for (int i = 0; i < count; i++) {
+		modesArray.push_back(modes[i]);
+	}
+	return modesArray;
+}
+
+std::vector<GLFWmonitor*> Window::getMonitors() {
+	int count;
+	GLFWmonitor** monitors = glfwGetMonitors(&count);
+	std::vector<GLFWmonitor*> monitorsArray;
+	for (int i = 0; i < count; i++) {
+		monitorsArray.push_back(monitors[i]);
+	}
+	return monitorsArray;
 }
 
 bool Window::isFullscreen() {
@@ -63,4 +111,16 @@ void Window::setResizable(bool resizable) {
 
 bool Window::isResizable() {
 	return is_resizable;
+}
+
+void Window::beginRender() {
+	glfwMakeContextCurrent(glfw_window);
+}
+
+void Window::endRender() {
+	glfwSwapBuffers(glfw_window);
+}
+
+bool Window::isClosing() {
+	return glfwWindowShouldClose(glfw_window);
 }

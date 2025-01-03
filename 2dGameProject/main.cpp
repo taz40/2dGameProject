@@ -1,28 +1,32 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include "Window.h"
+
+void init() {
+	if (!glfwInit())
+		throw ("Unable to init GLFW");
+}
+
+void deinit() {
+	glfwTerminate();
+}
 
 int main() {
-	
-	GLFWwindow* window;
 
-	if (!glfwInit())
-		return -1;
+	init();
 
-	window = glfwCreateWindow(649, 480, "Test", NULL, NULL);
-	if (!window) {
-		glfwTerminate();
-		return -1;
-	}
+	Window* window = new Window(640, 480, "Test Window");
+	window->setWindowedFullscreen(window->getMonitors()[1]);
 
-	glfwMakeContextCurrent(window);
+	window->beginRender();
 
-	while (!glfwWindowShouldClose(window)) {
+	while (!window->isClosing()) {
 		glClear(GL_COLOR_BUFFER_BIT);
-		glfwSwapBuffers(window);
+		window->endRender();
 		glfwPollEvents();
 	}
 
-	glfwTerminate();
+	deinit();
 
 	return 0;
 }
