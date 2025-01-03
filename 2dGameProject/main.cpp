@@ -55,9 +55,17 @@ int main() {
 	window->beginRender();
 	openGLContextInit();
 	glm::vec2 vector(4, 3);
+	INFO("GLM TEST: Vector is ({},{})", vector.x, vector.y);
 
 	while (!window->isClosing()) {
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		glBegin(GL_TRIANGLES);
+		glVertex2f(0.0f, 0.5f);
+		glVertex2f(0.5f, 0.0f);
+		glVertex2f(-0.5f, 0.0f);
+		glEnd();
+
 		window->endRender();
 		glfwPollEvents();
 	}
