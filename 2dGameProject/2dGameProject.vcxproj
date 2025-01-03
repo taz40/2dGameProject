@@ -133,12 +133,12 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\deps\glfw\glfw.vcxproj">
-      <Project>{c40453a2-a653-46a2-9ad7-f174540ef26c}</Project>
-    </ProjectReference>
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Window.h" />
+    <ProjectReference Include="..\deps\glfw.vcxproj">
+      <Project>{1153a50d-40f1-4b5a-ba79-072cee778c0e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
