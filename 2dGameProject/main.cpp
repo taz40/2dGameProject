@@ -1,5 +1,4 @@
 #define GLFW_INCLUDE_NONE
-
 #include <iostream>
 #include <GLFW/glfw3.h>
 #include "Window.h"
@@ -12,6 +11,9 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <memory>
 #include <chrono>
+#include "Square.h"
+#include "deff.h"
+#include <array>
 
 int OpenGLVersion;
 spdlog::logger logger("none");
@@ -36,10 +38,11 @@ float squareColors[] = {
 };
 
 const char* vertexShaderSource = "#version 330 core\n"
+"#extension GL_ARB_explicit_uniform_location: enable\n"
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec4 color;\n"
-"uniform mat4 projection;\n"
-"uniform mat4 model;\n"
+"layout (location = 0) uniform mat4 projection;\n"
+"layout (location = 1) uniform mat4 model;\n"
 "out vec4 vertexColor;\n"
 "void main()\n"
 "{\n"
@@ -93,18 +96,10 @@ int main() {
 	init();
 
 	Window* window = new Window(640, 480, "Test Window");
-
+	//window->setWindowedFullscreen();
 	window->beginRender();
+	glfwSwapInterval(0);
 	openGLContextInit();
-
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(square), square, GL_STATIC_DRAW);
 
 	unsigned int vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -149,56 +144,28 @@ int main() {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	unsigned int colorBuffer;
-	glGenBuffers(1, &colorBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(squareColors), squareColors, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(1);
-
-	unsigned int EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(squareIndices), squareIndices, GL_STATIC_DRAW);
-
-	glBindVertexArray(NULL);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, NULL);
-	glBindBuffer(GL_ARRAY_BUFFER, NULL);
-	bool up = false;
-	float interval = 0.001;
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	unsigned int projMatLocation = glGetUniformLocation(shaderProgram, "projection");
-	glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, glm::value_ptr(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f)));
-
-	unsigned int modelMatLocation = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(modelMatLocation, 1, GL_FALSE, glm::value_ptr(glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(400, 300, 0)), glm::vec3(100, 100, 1))));
+	glUniformMatrix4fv(UNIFORM_PROJ_MAT, 1, GL_FALSE, glm::value_ptr(glm::ortho(0.0f, 800.0f, 600.0f, 0.0f)));
+	std::array<Square*, 100*100> squares;
+	for (int i = 0; i < 100 * 100; i++) {
+		int x = i % 100;
+		int y = i / 100;
+		squares[i] = new Square(glm::vec3(x*6, y*6, 0.0f), glm::vec3(6.0f, 6.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	}
+	//Square square({ 0, 0, 0 }, { 6, 6, 0 }, {0.0f, 1.0f, 0.0f, 1.0f});
 	while (!window->isClosing()) {
-		if (up) {
-			squareColors[0] += interval;
-			if (squareColors[0] >= 1.0) {
-				squareColors[0] = 1.0;
-				up = false;
-			}
-		} else {
-			squareColors[0] -= interval;
-			if (squareColors[0] <= 0.0) {
-				squareColors[0] = 0.0;
-				up = true;
-			}
+		//square.Draw();
+		for (auto square : squares) {
+			square->Draw();
 		}
-		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(squareColors), squareColors, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, NULL);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(NULL);
 
 		window->endRender();
 		glfwPollEvents();
+	}
+
+	for (auto square : squares) {
+		delete square;
 	}
 
 	deinit();

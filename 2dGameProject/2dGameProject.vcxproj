@@ -131,9 +131,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Square.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="deff.h" />
+    <ClInclude Include="Square.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
