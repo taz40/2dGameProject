@@ -4,7 +4,9 @@
 #include <GLFW/glfw3.h>
 #include "Window.h"
 #include <glad/glad.h>
-#include <glm/vec2.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -15,10 +17,10 @@ int OpenGLVersion;
 spdlog::logger logger("none");
 
 float square[] = {
-	 0.5f,  0.5f, 0.0f,  // top right
-	 0.5f, -0.5f, 0.0f,  // bottom right
-	-0.5f, -0.5f, 0.0f,  // bottom left
-	-0.5f,  0.5f, 0.0f   // top left 
+	 1.0f,  1.0f, 0.0f,  // top right
+	 1.0f, -1.0f, 0.0f,  // bottom right
+	-1.0f, -1.0f, 0.0f,  // bottom left
+	-1.0f,  1.0f, 0.0f   // top left 
 };
 
 unsigned int squareIndices[]{
@@ -36,10 +38,12 @@ float squareColors[] = {
 const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec4 color;\n"
+"uniform mat4 projection;\n"
+"uniform mat4 model;\n"
 "out vec4 vertexColor;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"   gl_Position = projection * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
 "	vertexColor = color;\n"
 "}\0";
 
@@ -166,6 +170,11 @@ int main() {
 	float interval = 0.001;
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	unsigned int projMatLocation = glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(projMatLocation, 1, GL_FALSE, glm::value_ptr(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f)));
+
+	unsigned int modelMatLocation = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(modelMatLocation, 1, GL_FALSE, glm::value_ptr(glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(400, 300, 0)), glm::vec3(100, 100, 1))));
 	while (!window->isClosing()) {
 		if (up) {
 			squareColors[0] += interval;
