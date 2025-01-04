@@ -14,9 +14,11 @@
 #include "Square.h"
 #include "deff.h"
 #include <array>
+#include <thread>
 
 int OpenGLVersion;
 spdlog::logger logger("none");
+std::mutex ready;
 
 float square[] = {
 	 1.0f,  1.0f, 0.0f,  // top right
@@ -65,6 +67,19 @@ const char* fragmentShaderSource = "#version 330 core\n"
 #define ERR(...) logger.error(__VA_ARGS__)
 #define CRITICAL(...) logger.critical(__VA_ARGS__)
 
+bool running = true;
+Window* window;
+unsigned int shaderProgram;
+
+void openGLContextInit() {
+	OpenGLVersion = gladLoadGL();
+	if (OpenGLVersion == 0) {
+		ERR("Unable to load GLAD");
+		throw ("Failed to load GLAD");
+	}
+	INFO("GLAD Initialized");
+}
+
 void init() {
 	auto console = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	auto file = std::make_shared<spdlog::sinks::basic_file_sink_mt>("log.txt", true);
@@ -76,29 +91,14 @@ void init() {
 		throw ("Unable to init GLFW");
 	}
 	INFO("GLFW Initialized!");
+	window = new Window(640, 480, "Test Window");
 }
 
-void openGLContextInit() {
-	OpenGLVersion = gladLoadGL();
-	if (OpenGLVersion == 0) {
-		ERR("Unable to load GLAD");
-		throw ("Failed to load GLAD");
-	}
-	INFO("GLAD Initialized");
-}
-
-void deinit() {
-	glfwTerminate();
-}
-
-int main() {
-
-	init();
-
-	Window* window = new Window(640, 480, "Test Window");
+void renderInit() {
 	//window->setWindowedFullscreen();
 	window->beginRender();
-	glfwSwapInterval(0);
+	//glfwSwapInterval(1);
+	window->setWindowedFullscreen();
 	openGLContextInit();
 
 	unsigned int vertexShader;
@@ -112,7 +112,7 @@ int main() {
 	if (!success) {
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
 		ERR("Vertex Shader Compile Failed: {}", infoLog);
-		return -1;
+		return;
 	}
 
 	unsigned int fragmentShader;
@@ -124,10 +124,9 @@ int main() {
 	if (!success) {
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
 		ERR("Fragment Shader Compile Failed: {}", infoLog);
-		return -1;
+		return;
 	}
 
-	unsigned int shaderProgram;
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
@@ -137,7 +136,7 @@ int main() {
 	if (!success) {
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 		ERR("Program Link Failed: {}", infoLog);
-		return -1;
+		return;
 	}
 
 	glUseProgram(shaderProgram);
@@ -147,26 +146,39 @@ int main() {
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glUniformMatrix4fv(UNIFORM_PROJ_MAT, 1, GL_FALSE, glm::value_ptr(glm::ortho(0.0f, 800.0f, 600.0f, 0.0f)));
-	std::array<Square*, 100*100> squares;
-	for (int i = 0; i < 100 * 100; i++) {
-		int x = i % 100;
-		int y = i / 100;
-		squares[i] = new Square(glm::vec3(x*6, y*6, 0.0f), glm::vec3(6.0f, 6.0f, 1.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	}
-	//Square square({ 0, 0, 0 }, { 6, 6, 0 }, {0.0f, 1.0f, 0.0f, 1.0f});
-	while (!window->isClosing()) {
-		//square.Draw();
-		for (auto square : squares) {
-			square->Draw();
-		}
+}
 
+void deinit() {
+	glDeleteProgram(shaderProgram);
+	glfwTerminate();
+}
+
+void render() {
+	INFO("Render thread starting");
+	renderInit();
+	while (running) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		window->beginRender();
 		window->endRender();
+	}
+}
+
+void update() {
+	INFO("Update Thread Starting");
+	while (!window->isClosing()) {
 		glfwPollEvents();
 	}
+	running = false;
+}
 
-	for (auto square : squares) {
-		delete square;
-	}
+int main() {
+
+	init();
+
+	std::thread renderThread(render);
+	Sleep(10);
+	update();
+	renderThread.join();
 
 	deinit();
 

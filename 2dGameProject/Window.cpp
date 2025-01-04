@@ -1,4 +1,5 @@
 #include "Window.h"
+#include <iostream>
 
 Window::Window(int width, int height, const char* title) {
 	glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -7,7 +8,8 @@ Window::Window(int width, int height, const char* title) {
 	setSize(width, height);
 	setTitle(title);
 	glfwSetFramebufferSizeCallback(glfw_window, onResize);
-
+	glfwSetWindowUserPointer(glfw_window, this);
+	resized = false;
 }
 
 Window::~Window() {
@@ -34,6 +36,12 @@ void Window::setSize(int width, int height) {
 	this->height = height;
 	this->width = width;
 	glfwSetWindowSize(glfw_window, width, height);
+}
+
+void Window::resizeViewport(int width, int height) {
+	this->width = width;
+	this->height = height;
+	resized = true;
 }
 
 void Window::setTitle(const char* title) {
@@ -116,6 +124,11 @@ bool Window::isResizable() {
 
 void Window::beginRender() {
 	glfwMakeContextCurrent(glfw_window);
+	if (resized) {
+		std::cout << "Resizing viewport\n";
+		glViewport(0, 0, width, height);
+		resized = false;
+	}
 }
 
 void Window::endRender() {
@@ -127,6 +140,5 @@ bool Window::isClosing() {
 }
 
 void Window::onResize(GLFWwindow* window, int width, int height) {
-	glfwMakeContextCurrent(window);
-	glViewport(0, 0, width, height);
+	((Window*)glfwGetWindowUserPointer(window))->resizeViewport(width, height);
 }

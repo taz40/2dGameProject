@@ -10,6 +10,7 @@ private:
 	bool is_fullscreen;
 	bool is_resizable;
 	int windowed_mode_x, windowed_mode_y;
+	bool resized;
 
 public:
 	Window(int width, int height, const char* title);
@@ -19,6 +20,7 @@ public:
 	void setWidth(int width);
 	void setHeight(int height);
 	void setSize(int width, int height);
+	void resizeViewport(int width, int height);
 	const char* getTitle();
 	void setTitle(const char* title);
 	std::vector<GLFWvidmode> getVideoModes();
