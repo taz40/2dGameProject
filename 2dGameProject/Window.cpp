@@ -6,6 +6,7 @@ Window::Window(int width, int height, const char* title) {
 		throw ("Failed to create GLFW Window!");
 	setSize(width, height);
 	setTitle(title);
+	glfwSetFramebufferSizeCallback(glfw_window, onResize);
 
 }
 
@@ -123,4 +124,9 @@ void Window::endRender() {
 
 bool Window::isClosing() {
 	return glfwWindowShouldClose(glfw_window);
+}
+
+void Window::onResize(GLFWwindow* window, int width, int height) {
+	glfwMakeContextCurrent(window);
+	glViewport(0, 0, width, height);
 }

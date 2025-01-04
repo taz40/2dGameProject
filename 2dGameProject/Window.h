@@ -35,5 +35,7 @@ public:
 	void beginRender();
 	void endRender();
 	bool isClosing();
+private:
+	static void onResize(GLFWwindow* window, int width, int height);
 };
 
