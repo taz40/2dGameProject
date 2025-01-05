@@ -13,7 +13,7 @@
 #include <chrono>
 #include "Square.h"
 #include "deff.h"
-#include <array>
+#include <vector>
 #include <thread>
 
 int OpenGLVersion;
@@ -98,7 +98,7 @@ void renderInit() {
 	//window->setWindowedFullscreen();
 	window->beginRender();
 	//glfwSwapInterval(1);
-	window->setWindowedFullscreen();
+	//window->setWindowedFullscreen();
 	openGLContextInit();
 
 	unsigned int vertexShader;
@@ -156,14 +156,24 @@ void deinit() {
 void render() {
 	INFO("Render thread starting");
 	renderInit();
+	std::vector<Square*> squares;
+	for (int i = 0; i < 100 * 100; i++) {
+		int x = i % 100;
+		int y = i / 100;
+		squares.push_back(new Square({x*6, y*6, 0}, {6, 6, 1}, {0, 0, 1, 1}));
+	}
 	while (running) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		window->beginRender();
+		for (auto square : squares) {
+			square->Draw();
+		}
 		window->endRender();
 	}
 }
 
 void update() {
+	glfwMakeContextCurrent(NULL);
 	INFO("Update Thread Starting");
 	while (!window->isClosing()) {
 		glfwPollEvents();
