@@ -206,7 +206,6 @@ void update() {
 }
 
 int main() {
-
 	init();
 
 	std::thread renderThread(render);
