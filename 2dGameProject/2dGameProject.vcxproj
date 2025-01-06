@@ -130,12 +130,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="Square.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="deff.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="SpriteRenderer.h" />
     <ClInclude Include="Square.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "SpriteRenderer.h"
 
 class Square {
 
@@ -13,6 +14,6 @@ private:
 public:
 	Square(glm::vec3 position, glm::vec3 scale, glm::vec4 color);
 	~Square();
-	void Draw();
+	void Draw(SpriteRenderer*);
 };
 

@@ -1,10 +1,14 @@
 #include "Window.h"
 #include <iostream>
+#include "Log.h"
 
 Window::Window(int width, int height, const char* title) {
 	glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
-	if (!glfw_window)
+	INFO("Window created with size {}x{} and title {}", width, height, title);
+	if (!glfw_window) {
+		ERR("Failed to create GLFW Window!");
 		throw ("Failed to create GLFW Window!");
+	}
 	setSize(width, height);
 	setTitle(title);
 	glfwSetFramebufferSizeCallback(glfw_window, onResize);
@@ -125,7 +129,7 @@ bool Window::isResizable() {
 void Window::beginRender() {
 	glfwMakeContextCurrent(glfw_window);
 	if (resized) {
-		std::cout << "Resizing viewport\n";
+		TRACE("Resizing viewport");
 		glViewport(0, 0, width, height);
 		resized = false;
 	}

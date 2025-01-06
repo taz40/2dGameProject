@@ -15,6 +15,7 @@
 #include "deff.h"
 #include <vector>
 #include <thread>
+#include "Log.h"
 
 int OpenGLVersion;
 spdlog::logger logger("none");
@@ -44,7 +45,7 @@ const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec4 color;\n"
 "layout (location = 0) uniform mat4 projection;\n"
-"layout (location = 1) uniform mat4 model;\n"
+"layout (location = 2) in mat4 model;\n"
 "out vec4 vertexColor;\n"
 "void main()\n"
 "{\n"
@@ -60,16 +61,18 @@ const char* fragmentShaderSource = "#version 330 core\n"
 "	FragColor = vertexColor;\n"
 "}\0";
 
-#define TRACE(...) logger.trace(__VA_ARGS__)
-#define DEBUG(...) logger.debug(__VA_ARGS__)
-#define INFO(...) logger.info(__VA_ARGS__)
-#define WARN(...) logger.warn(__VA_ARGS__)
-#define ERR(...) logger.error(__VA_ARGS__)
-#define CRITICAL(...) logger.critical(__VA_ARGS__)
-
 bool running = true;
 Window* window;
 unsigned int shaderProgram;
+
+void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userparam) {
+	if (type == GL_DEBUG_TYPE_ERROR) {
+		ERR("GL CALLBACK: ** GL ERROR ** type = {}, severity = {}, message = {}", type, severity, message);
+		__debugbreak();
+	} else {
+		DEBUG("GL CALLBACK: type = {}, severity = {}, message = {}", type, severity, message);
+	}
+}
 
 void openGLContextInit() {
 	OpenGLVersion = gladLoadGL();
@@ -78,18 +81,36 @@ void openGLContextInit() {
 		throw ("Failed to load GLAD");
 	}
 	INFO("GLAD Initialized");
+	int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+	if (!(flags & GL_CONTEXT_FLAG_DEBUG_BIT)){
+		ERROR("Failed to create Debug Context");
+	}
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+	glDebugMessageCallback(MessageCallback, 0);
+	INFO("GL Debug Callback Initialized");
+	int count = 0;
+	do {
+		GLenum sources, types, severities;
+		int lengths;
+		GLuint ids;
+		int len = 0;
+		glGetIntegerv(GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH, &len);
+		char* message = new char[len];
+		count = glGetDebugMessageLog(1, len, &sources, &types, &ids, &severities, &lengths, message);
+		MessageCallback(sources, types, ids, severities, lengths, message, 0);
+		delete[] message;
+	} while (count != 0);
 }
 
 void init() {
-	auto console = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	auto file = std::make_shared<spdlog::sinks::basic_file_sink_mt>("log.txt", true);
-	logger = spdlog::logger("Logger", {console, file});
-	INFO("spdlog Initialized");
-
+	Log::Init();
 	if (!glfwInit()) {
 		ERR("Unable to Initialize GLFW");
 		throw ("Unable to init GLFW");
 	}
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	INFO("GLFW Initialized!");
 	window = new Window(640, 480, "Test Window");
 }
@@ -97,7 +118,7 @@ void init() {
 void renderInit() {
 	//window->setWindowedFullscreen();
 	window->beginRender();
-	//glfwSwapInterval(1);
+	glfwSwapInterval(0);
 	//window->setWindowedFullscreen();
 	openGLContextInit();
 
@@ -132,7 +153,7 @@ void renderInit() {
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
 
-	glGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &success);
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 		ERR("Program Link Failed: {}", infoLog);
@@ -156,6 +177,7 @@ void deinit() {
 void render() {
 	INFO("Render thread starting");
 	renderInit();
+	SpriteRenderer* renderer = new SpriteRenderer();
 	std::vector<Square*> squares;
 	for (int i = 0; i < 100 * 100; i++) {
 		int x = i % 100;
@@ -166,10 +188,12 @@ void render() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		window->beginRender();
 		for (auto square : squares) {
-			square->Draw();
+			square->Draw(renderer);
 		}
+		renderer->flush();
 		window->endRender();
 	}
+	delete renderer;
 }
 
 void update() {
