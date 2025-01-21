@@ -68,7 +68,6 @@ unsigned int shaderProgram;
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userparam) {
 	if (type == GL_DEBUG_TYPE_ERROR) {
 		ERR("GL CALLBACK: ** GL ERROR ** type = {}, severity = {}, message = {}", type, severity, message);
-		__debugbreak();
 	} else {
 		DEBUG("GL CALLBACK: type = {}, severity = {}, message = {}", type, severity, message);
 	}
@@ -83,7 +82,7 @@ void openGLContextInit() {
 	INFO("GLAD Initialized");
 	int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 	if (!(flags & GL_CONTEXT_FLAG_DEBUG_BIT)){
-		ERROR("Failed to create Debug Context");
+		ERR("Failed to create Debug Context");
 	}
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -209,7 +208,6 @@ int main() {
 	init();
 
 	std::thread renderThread(render);
-	Sleep(10);
 	update();
 	renderThread.join();
 
