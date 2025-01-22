@@ -91,8 +91,6 @@ void renderInit() {
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4)*2, new matricies{glm::ortho(0.0f, 800.0f, 600.0f, 0.0f), glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0))}, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, PROJ_MAT_UNIFORM_BUFFER, uniformBuffer);
-	
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void deinit() {
@@ -103,18 +101,17 @@ void render() {
 	INFO("Render thread starting");
 	renderInit();
 	SpriteRenderer* renderer = new SpriteRenderer();
-	std::vector<Square*> squares;
-	for (int i = 0; i < 100 * 100; i++) {
-		int x = i % 100;
-		int y = i / 100;
-		squares.push_back(new Square({x*6, y*6, 0}, {6, 6, 1}, {0, 0, 1, 1}));
-	}
+	Square square1(glm::vec3(100, 100, 0), glm::vec3(100, 100, 1), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	Square square2(glm::vec3(600, 100, 0), glm::vec3(100, 100, 1), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	Square square3(glm::vec3(100, 400, 0), glm::vec3(100, 100, 1), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	Square square4(glm::vec3(600, 400, 0), glm::vec3(100, 100, 1), glm::vec4(0.7f, 0.7f, 0.3f, 1.0f));
 	while (running) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		window->beginRender();
-		for (auto square : squares) {
-			square->Draw(renderer);
-		}
+		square1.Draw(renderer);
+		square2.Draw(renderer);
+		square3.Draw(renderer);
+		square4.Draw(renderer);
 		renderer->flush();
 		window->endRender();
 	}

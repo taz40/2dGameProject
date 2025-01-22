@@ -22,5 +22,5 @@ void Square::Draw(SpriteRenderer* renderer) {
 	//glBindVertexArray(VAO);
 	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	//glBindVertexArray(NULL);
-	renderer->drawSprite(model_transform);
+	renderer->drawSprite(model_transform, color);
 }
