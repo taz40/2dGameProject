@@ -4,7 +4,7 @@
 
 class SpriteRenderer {
 private:
-	unsigned int VAO, VBO, EBO, instanceVBO;
+	unsigned int VAO, VBO, EBO, instanceVBO, shaderProgram;
 	std::vector<glm::mat4> matrices;
 
 public:

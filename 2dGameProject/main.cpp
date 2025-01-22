@@ -1,3 +1,5 @@
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include "Window.h"
@@ -18,49 +20,14 @@ int OpenGLVersion;
 spdlog::logger logger("none");
 std::mutex ready;
 
-float square[] = {
-	 1.0f,  1.0f, 0.0f,  // top right
-	 1.0f, -1.0f, 0.0f,  // bottom right
-	-1.0f, -1.0f, 0.0f,  // bottom left
-	-1.0f,  1.0f, 0.0f   // top left 
-};
-
-unsigned int squareIndices[]{
-	0, 1, 3,
-	1, 2, 3
-};
-
-float squareColors[] = {
-	1.0f, 0.0f, 0.0f, 1.0f,
-	1.0f, 0.0f, 0.0f, 1.0f,
-	1.0f, 0.0f, 0.0f, 1.0f,
-	1.0f, 0.0f, 0.0f, 1.0f
-};
-
-const char* vertexShaderSource = "#version 330 core\n"
-"#extension GL_ARB_explicit_uniform_location: enable\n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec4 color;\n"
-"layout (location = 0) uniform mat4 projection;\n"
-"layout (location = 2) in mat4 model;\n"
-"out vec4 vertexColor;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = projection * model * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"	vertexColor = color;\n"
-"}\0";
-
-const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"in vec4 vertexColor;\n"
-"void main()\n"
-"{\n"
-"	FragColor = vertexColor;\n"
-"}\0";
-
 bool running = true;
 Window* window;
-unsigned int shaderProgram;
+unsigned int uniformBuffer;
+
+struct matricies {
+	glm::mat4 projection;
+	glm::mat4 view;
+};
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userparam) {
 	if (type == GL_DEBUG_TYPE_ERROR) {
@@ -118,55 +85,17 @@ void renderInit() {
 	//window->setWindowedFullscreen();
 	openGLContextInit();
 
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
+	glGenBuffers(1, &uniformBuffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, uniformBuffer);
 
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		ERR("Vertex Shader Compile Failed: {}", infoLog);
-		return;
-	}
-
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		ERR("Fragment Shader Compile Failed: {}", infoLog);
-		return;
-	}
-
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		ERR("Program Link Failed: {}", infoLog);
-		return;
-	}
-
-	glUseProgram(shaderProgram);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4)*2, new matricies{glm::ortho(0.0f, 800.0f, 600.0f, 0.0f), glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0))}, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBufferBase(GL_UNIFORM_BUFFER, PROJ_MAT_UNIFORM_BUFFER, uniformBuffer);
+	
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glUniformMatrix4fv(UNIFORM_PROJ_MAT, 1, GL_FALSE, glm::value_ptr(glm::ortho(0.0f, 800.0f, 600.0f, 0.0f)));
 }
 
 void deinit() {
-	glDeleteProgram(shaderProgram);
 	glfwTerminate();
 }
 
