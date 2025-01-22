@@ -12,7 +12,6 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include "Square.h"
 #include "deff.h"
-#include <vector>
 #include <thread>
 #include "Log.h"
 
