@@ -1,5 +1,4 @@
 #include "Window.h"
-#include <iostream>
 #include "Log.h"
 
 Window::Window(int width, int height, const char* title) {
@@ -69,7 +68,7 @@ void Window::setFullscreen(int width, int height, int refreshRate, GLFWmonitor* 
 
 void Window::setWindowed() {
 	is_fullscreen = false;
-	glfwSetWindowMonitor(glfw_window, NULL, windowed_mode_x, windowed_mode_y, width, height, NULL);
+	glfwSetWindowMonitor(glfw_window, NULL, windowed_mode_x, windowed_mode_y, width, height, 0);
 }
 
 void Window::setWindowedFullscreen() {

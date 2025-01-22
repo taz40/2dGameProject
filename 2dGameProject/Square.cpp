@@ -2,7 +2,6 @@
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "deff.h"
 
 Square::Square(glm::vec3 position, glm::vec3 scale, glm::vec4 color) {
 	//Initialize Member Variables

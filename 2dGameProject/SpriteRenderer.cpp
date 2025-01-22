@@ -1,6 +1,5 @@
 #include "SpriteRenderer.h"
 #include <glad/glad.h>
-#include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 #include "Log.h"
 

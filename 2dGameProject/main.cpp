@@ -1,5 +1,4 @@
 #define GLFW_INCLUDE_NONE
-#include <iostream>
 #include <GLFW/glfw3.h>
 #include "Window.h"
 #include <glad/glad.h>
@@ -9,8 +8,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
-#include <memory>
-#include <chrono>
 #include "Square.h"
 #include "deff.h"
 #include <vector>

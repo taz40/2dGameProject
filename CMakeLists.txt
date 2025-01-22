@@ -4,6 +4,7 @@ file(GLOB 2dGameProject_SRC
      "2dGameProject/*.h"
      "2dGameProject/*.cpp"
 )
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 add_subdirectory(deps/glfw)
 add_subdirectory(deps/glad)
