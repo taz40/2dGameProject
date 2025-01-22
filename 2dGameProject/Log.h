@@ -1,5 +1,5 @@
 #pragma once
-#include "spdlog/spdlog.h"
+#include "spdlog/logger.h"
 #include <memory>
 
 #define TRACE(...) Log::GetLogger()->trace(__VA_ARGS__)

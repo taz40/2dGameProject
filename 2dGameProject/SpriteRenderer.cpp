@@ -48,7 +48,7 @@ SpriteRenderer::SpriteRenderer() {
 	glVertexAttribDivisor(4, 1);
 	glVertexAttribDivisor(5, 1);
 
-	glBindVertexArray(NULL);
+	glBindVertexArray(0);
 	INFO("Sprite renderer initialized");
 
 }
@@ -68,7 +68,7 @@ void SpriteRenderer::flush() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * matrices.size(), matrices.data(), GL_STREAM_DRAW);
 	glBindVertexArray(VAO);
 	glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, matrices.size());
-	glBindVertexArray(NULL);
+	glBindVertexArray(0);
 	glFinish();
 	matrices.clear();
 }
