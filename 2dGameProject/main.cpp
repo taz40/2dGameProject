@@ -23,6 +23,10 @@ bool running = true;
 Window* window;
 unsigned int uniformBuffer;
 
+double lastTime;
+
+Square *square1, *square2, *square3, *square4;
+
 struct matricies {
 	glm::mat4 projection;
 	glm::mat4 view;
@@ -100,27 +104,55 @@ void render() {
 	INFO("Render thread starting");
 	renderInit();
 	SpriteRenderer* renderer = new SpriteRenderer();
-	Square square1(glm::vec3(100, 100, 0), glm::vec3(100, 100, 1), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	Square square2(glm::vec3(600, 100, 0), glm::vec3(100, 100, 1), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	Square square3(glm::vec3(100, 400, 0), glm::vec3(100, 100, 1), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-	Square square4(glm::vec3(600, 400, 0), glm::vec3(100, 100, 1), glm::vec4(0.7f, 0.7f, 0.3f, 1.0f));
 	while (running) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		window->beginRender();
-		square1.Draw(renderer);
-		square2.Draw(renderer);
-		square3.Draw(renderer);
-		square4.Draw(renderer);
+		square1->Draw(renderer);
+		square2->Draw(renderer);
+		square3->Draw(renderer);
+		square4->Draw(renderer);
 		renderer->flush();
 		window->endRender();
 	}
 	delete renderer;
 }
 
+float sq1_vel = -.5f;
+float sq2_scale_vel = 0.995f;
+float sq3_color_vel = -0.01f;
+float sq4_rot_vel = 0.01f;
+
 void update() {
 	glfwMakeContextCurrent(NULL);
 	INFO("Update Thread Starting");
+	lastTime = glfwGetTime();
 	while (!window->isClosing()) {
+		double currentTime = glfwGetTime();
+		if(currentTime - lastTime >= (1/60.0)) { //Update 60 times per second
+			lastTime = currentTime;
+			glm::vec3 pos = square1->GetPosition();
+			pos.y += sq1_vel;
+			square1->SetPosition(pos);
+			if(pos.y > 150 || pos.y < 50) {
+				sq1_vel = -sq1_vel;
+			}
+			glm::vec3 scale = square2->GetScale();
+			scale.x *= sq2_scale_vel;
+			scale.y *= sq2_scale_vel;
+			square2->SetScale(scale);
+			if(scale.x < 50 || scale.x > 200) {
+				sq2_scale_vel = 1.0f/sq2_scale_vel;
+			}
+			glm::vec4 col = square3->GetColor();
+			col.b += sq3_color_vel;
+			square3->SetColor(col);
+			if(col.b <= 0.1 || col.b >= 1.0) {
+				sq3_color_vel = -sq3_color_vel;
+			}
+			float rot = square4->GetRotation();
+			rot += sq4_rot_vel;
+			square4->SetRotation(rot);
+		}
 		glfwPollEvents();
 	}
 	running = false;
@@ -128,6 +160,11 @@ void update() {
 
 int main() {
 	init();
+
+	square1 = new Square(glm::vec3(100, 100, 0), glm::vec3(100, 100, 1), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	square2 = new Square(glm::vec3(600, 100, 0), glm::vec3(100, 100, 1), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	square3 = new Square(glm::vec3(100, 400, 0), glm::vec3(100, 100, 1), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	square4 = new Square(glm::vec3(600, 400, 0), glm::vec3(100, 100, 1), glm::vec4(0.7f, 0.7f, 0.3f, 1.0f));
 
 	std::thread renderThread(render);
 	update();
